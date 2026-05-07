@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "Manga": {
+      "title": "Manga Metadata",
+      "description": "Metadata for a manga or comic series",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "description": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["ongoing", "completed", "hiatus", "cancelled"] },
+        "genres": { "type": "array", "items": { "type": "string" } },
+        "source": { "type": "string" }
+      },
+      "required": ["id", "title", "coverUrl"]
+    },
+    "LibraryItem": {
+      "title": "User Library Entry",
+      "description": "User's saved manga and progress",
+      "type": "object",
+      "properties": {
+        "mangaId": { "type": "string" },
+        "userId": { "type": "string" },
+        "addedAt": { "type": "string", "format": "date-time" },
+        "lastReadAt": { "type": "string", "format": "date-time" },
+        "lastChapterRead": { "type": "string" },
+        "lastPageRead": { "type": "integer" },
+        "status": { "type": "string", "enum": ["reading", "completed", "on_hold", "dropped", "plan_to_read"] }
+      },
+      "required": ["mangaId", "userId", "status"]
+    },
+    "History": {
+      "title": "Reading History",
+      "description": "Log of reading activity",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "mangaId": { "type": "string" },
+        "chapterId": { "type": "string" },
+        "pageNumber": { "type": "integer" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "mangaId", "chapterId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "manga": {
+      "schema": "Manga",
+      "description": "Global cache of manga metadata"
+    },
+    "users/{userId}/library": {
+      "schema": "LibraryItem",
+      "description": "User specific manga library"
+    },
+    "users/{userId}/history": {
+      "schema": "History",
+      "description": "User reading history"
+    }
+  }
+}
