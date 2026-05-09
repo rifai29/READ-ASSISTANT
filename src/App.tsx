@@ -87,10 +87,10 @@ const Button = ({
   id?: string;
 }) => {
   const variants = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95',
-    secondary: 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700 active:scale-95',
-    ghost: 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-800/50',
-    danger: 'bg-red-900/50 text-red-100 hover:bg-red-800 active:scale-95 border border-red-500/30'
+    primary: 'bg-primary text-white hover:bg-primary/90 active:scale-95',
+    secondary: 'bg-bg-card text-text-main hover:bg-border-subtle active:scale-95 border border-border-subtle',
+    ghost: 'bg-transparent text-text-muted hover:text-text-main hover:bg-border-subtle',
+    danger: 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white active:scale-95 border border-red-500/20'
   };
 
   return (
@@ -122,7 +122,7 @@ const Card = ({ manga, onClick, id }: CardProps) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     whileHover={{ y: -4 }}
-    className="group relative aspect-[2/3] rounded-xl overflow-hidden bg-zinc-900 cursor-pointer shadow-lg"
+    className="group relative aspect-[2/3] rounded-3xl overflow-hidden bg-bg-card cursor-pointer shadow-lg border border-border-subtle"
     onClick={onClick}
   >
     <img 
@@ -131,13 +131,13 @@ const Card = ({ manga, onClick, id }: CardProps) => (
       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
       referrerPolicy="no-referrer"
     />
-    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80" />
-    <div className="absolute bottom-0 left-0 right-0 p-3">
-      <h3 className="text-white text-sm font-semibold line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
+    <div className="absolute inset-0 bg-gradient-to-t from-bg-main via-bg-main/20 to-transparent opacity-80" />
+    <div className="absolute bottom-0 left-0 right-0 p-4">
+      <h3 className="text-text-main text-sm font-bold line-clamp-2 leading-tight group-hover:text-primary transition-colors uppercase tracking-tight">
         {manga.title}
       </h3>
       {manga.status && (
-        <span className="text-[10px] uppercase tracking-wider text-zinc-400 mt-1 block">
+        <span className="text-[10px] uppercase tracking-widest text-text-dim mt-1 font-black block">
           {manga.status}
         </span>
       )}
@@ -217,6 +217,12 @@ const Reader = ({ manga, chapter, onBack }: { manga: Manga; chapter: Chapter; on
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'library' | 'browse' | 'history' | 'more'>('library');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('theme') as 'light' | 'dark') || 'dark';
+    }
+    return 'dark';
+  });
   const [selectedManga, setSelectedManga] = useState<Manga | null>(null);
   const [readingChapter, setReadingChapter] = useState<{ manga: Manga; chapter: Chapter } | null>(null);
   const [searchResults, setSearchResults] = useState<Manga[]>([]);
@@ -224,6 +230,13 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [libraryManga, setLibraryManga] = useState<Manga[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
@@ -325,13 +338,13 @@ export default function App() {
         className={cn(
           "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 group",
           active 
-            ? "bg-white/5 text-indigo-400" 
-            : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
+            ? "bg-primary/10 text-primary" 
+            : "text-text-muted hover:bg-border-subtle hover:text-text-main"
         )}
       >
         <div className={cn(
           "w-1.5 h-6 rounded-full transition-all duration-300",
-          active ? "bg-indigo-500" : "bg-transparent group-hover:bg-zinc-800"
+          active ? "bg-primary" : "bg-transparent group-hover:bg-border-subtle"
         )} />
         <Icon className={cn("w-5 h-5", active && "scale-110")} />
         <span className="text-sm">{label}</span>
@@ -340,14 +353,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-gray-200 font-sans flex overflow-hidden">
+    <div className="min-h-screen bg-bg-main text-text-main font-sans flex overflow-hidden">
       {/* Desktop Sidebar */}
-      <nav className="w-64 bg-[#111114] border-r border-white/5 flex-col p-6 hidden lg:flex h-screen sticky top-0">
+      <nav className="w-64 bg-bg-sidebar border-r border-border-subtle flex-col p-6 hidden lg:flex h-screen sticky top-0">
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white italic">KomiKaze</span>
+          <span className="text-xl font-bold tracking-tight text-text-main italic">KomiKaze</span>
         </div>
         
         <div className="space-y-1 flex-1">
@@ -374,12 +387,12 @@ export default function App() {
 
       <main className="flex-1 flex flex-col relative h-screen overflow-y-auto custom-scrollbar">
         {/* Mobile Header / Desktop View Header */}
-        <header className="h-20 flex items-center justify-between px-8 bg-[#0a0a0b]/80 backdrop-blur-md sticky top-0 z-40 border-b border-white/5">
+        <header className="h-20 flex items-center justify-between px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle">
           <div className="lg:hidden flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-indigo-500" />
+            <BookOpen className="w-6 h-6 text-primary" />
             <h1 className="text-lg font-bold italic">KomiKaze</h1>
           </div>
-          <h1 className="text-2xl font-bold text-white hidden lg:block">
+          <h1 className="text-2xl font-bold text-text-main hidden lg:block">
             {activeTab === 'library' && 'My Library'}
             {activeTab === 'browse' && 'Browse Manga'}
             {activeTab === 'history' && 'Reading History'}
@@ -387,12 +400,12 @@ export default function App() {
           </h1>
 
           <div className="flex items-center gap-4">
-            <div className="bg-white/5 px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 group focus-within:border-indigo-500/50 transition-all">
-              <Search className="w-4 h-4 text-zinc-500 group-focus-within:text-indigo-400" />
+            <div className="bg-bg-card px-4 py-2 rounded-full border border-border-subtle flex items-center gap-2 group focus-within:border-primary/50 transition-all">
+              <Search className="w-4 h-4 text-text-dim group-focus-within:text-primary" />
               <input 
                 type="text" 
                 placeholder="Quick search..." 
-                className="bg-transparent border-none text-sm focus:ring-0 text-zinc-300 w-24 sm:w-48 placeholder-zinc-600 outline-none"
+                className="bg-transparent border-none text-sm focus:ring-0 text-text-main w-24 sm:w-48 placeholder-text-dim outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -421,10 +434,10 @@ export default function App() {
                 {/* Hero Feature Component */}
                 {libraryManga.length > 0 && (
                   <section>
-                    <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-500 font-bold mb-4 ml-1">Currently Reading</h2>
-                    <div className="relative overflow-hidden bg-gradient-to-br from-indigo-950/30 to-purple-950/20 border border-indigo-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row gap-8 items-center shadow-2xl shadow-indigo-500/5 group">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
-                      <div className="w-40 sm:w-48 h-60 sm:h-72 bg-zinc-800 rounded-2xl shadow-2xl flex-shrink-0 overflow-hidden border border-white/10 transform group-hover:scale-105 transition-transform duration-500 relative">
+                    <h2 className="text-xs uppercase tracking-[0.2em] text-text-dim font-bold mb-4 ml-1">Currently Reading</h2>
+                    <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row gap-8 items-center shadow-2xl shadow-primary/5 group">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+                      <div className="w-40 sm:w-48 h-60 sm:h-72 bg-bg-card rounded-2xl shadow-2xl flex-shrink-0 overflow-hidden border border-border-subtle transform group-hover:scale-105 transition-transform duration-500 relative">
                         <img 
                           src={libraryManga[0].coverUrl} 
                           className="w-full h-full object-cover" 
@@ -432,26 +445,26 @@ export default function App() {
                         />
                       </div>
                       <div className="flex-1 text-center sm:text-left z-10">
-                        <div className="flex items-center justify-center sm:justify-start gap-2 text-indigo-400 font-bold text-sm">
-                           <span className="px-2 py-0.5 bg-indigo-500/10 rounded-md border border-indigo-500/30">Chapter 1</span>
-                           <span className="w-1 h-1 bg-zinc-700 rounded-full" />
-                           <span className="text-zinc-400">Action, Fantasy</span>
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-sm">
+                           <span className="px-2 py-0.5 bg-primary/10 rounded-md border border-primary/30">Chapter 1</span>
+                           <span className="w-1 h-1 bg-border-subtle rounded-full" />
+                           <span className="text-text-muted">Action, Fantasy</span>
                         </div>
-                        <h3 className="text-3xl sm:text-5xl font-black text-white mt-3 tracking-tight">{libraryManga[0].title}</h3>
-                        <p className="text-zinc-400 mt-4 line-clamp-3 max-w-xl font-light text-base sm:text-lg">
+                        <h3 className="text-3xl sm:text-5xl font-black text-text-main mt-3 tracking-tight">{libraryManga[0].title}</h3>
+                        <p className="text-text-muted mt-4 line-clamp-3 max-w-xl font-light text-base sm:text-lg">
                           {libraryManga[0].description || "No description available for this series."}
                         </p>
                         <div className="mt-8 flex flex-wrap gap-4 justify-center sm:justify-start">
                           <Button 
                             onClick={() => startReading(libraryManga[0])}
-                            className="bg-white text-black px-8 py-3 rounded-full font-bold text-sm hover:bg-indigo-400 hover:text-white transition-all shadow-xl shadow-white/5"
+                            className="bg-primary text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
                           >
                             Continue Reading
                           </Button>
                           <Button 
                              onClick={() => setSelectedManga(libraryManga[0])}
                              variant="secondary" 
-                             className="rounded-full px-8 border border-white/5"
+                             className="rounded-full px-8"
                            >
                             View Details
                           </Button>
@@ -463,38 +476,38 @@ export default function App() {
 
                 <section>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">
+                    <h2 className="text-xs uppercase tracking-[0.2em] text-text-dim font-bold ml-1">
                       Collection ({libraryManga.length})
                     </h2>
-                    <div className="flex gap-6 text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-white/5 py-1.5 px-4 rounded-full border border-white/5">
-                      <span className="cursor-pointer hover:text-white transition-colors">A-Z</span>
-                      <span className="text-zinc-700">/</span>
-                      <span className="cursor-pointer text-white">Latest</span>
+                    <div className="flex gap-6 text-[10px] font-bold text-primary uppercase tracking-widest bg-bg-card py-1.5 px-4 rounded-full border border-border-subtle">
+                      <span className="cursor-pointer hover:text-text-main transition-colors">A-Z</span>
+                      <span className="text-text-dim">/</span>
+                      <span className="cursor-pointer text-text-main">Latest</span>
                     </div>
                   </div>
 
                   {libraryManga.length === 0 ? (
                     <div className="py-24 flex flex-col items-center justify-center text-center">
-                      <Library className="w-16 h-16 text-zinc-900 mb-6" />
-                      <h3 className="text-xl font-bold text-zinc-500">Silence in the library...</h3>
-                      <p className="text-zinc-600 mt-2 max-w-xs">Explore the browse page to find your next adventure.</p>
+                      <Library className="w-16 h-16 text-border-subtle mb-6" />
+                      <h3 className="text-xl font-bold text-text-dim">Silence in the library...</h3>
+                      <p className="text-text-dim mt-2 max-w-xs opacity-60">Explore the browse page to find your next adventure.</p>
                       <Button onClick={() => setActiveTab('browse')} className="mt-8 px-10 rounded-full">Explore Now</Button>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-8">
                        {libraryManga.map((m: Manga) => (
                         <div key={m.id} className="group cursor-pointer" onClick={() => setSelectedManga(m)}>
-                          <div className="aspect-[2/3] bg-zinc-900 rounded-3xl mb-4 overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-indigo-500 group-hover:translate-y-[-8px] group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
+                          <div className="aspect-[2/3] bg-bg-card rounded-3xl mb-4 overflow-hidden border border-border-subtle transition-all duration-500 group-hover:border-primary group-hover:translate-y-[-8px] group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
                              <img 
                                 src={m.coverUrl} 
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                                 referrerPolicy="no-referrer"
                              />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 transition-opacity group-hover:opacity-100" />
-                             <div className="absolute top-3 right-3 bg-indigo-600 text-[10px] font-black px-2 py-1 rounded-lg shadow-xl translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">READ</div>
+                             <div className="absolute inset-0 bg-gradient-to-t from-bg-main via-bg-main/10 to-transparent opacity-60 transition-opacity group-hover:opacity-100" />
+                             <div className="absolute top-3 right-3 bg-primary text-[10px] font-black px-2 py-1 rounded-lg shadow-xl translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all text-white">READ</div>
                           </div>
-                          <h3 className="text-white font-bold text-sm tracking-tight line-clamp-1 group-hover:text-indigo-400 transition-colors uppercase">{m.title}</h3>
-                          <p className="text-[10px] text-zinc-600 font-black mt-1 uppercase tracking-widest">{m.status}</p>
+                          <h3 className="text-text-main font-bold text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors uppercase">{m.title}</h3>
+                          <p className="text-[10px] text-text-dim font-black mt-1 uppercase tracking-widest">{m.status}</p>
                         </div>
                       ))}
                     </div>
@@ -512,22 +525,85 @@ export default function App() {
                 className="space-y-10"
               >
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-8 mt-12">
-                   {searchResults.length > 0 ? (
-                      searchResults.map((m: Manga) => (
-                        <div key={m.id} className="group cursor-pointer" onClick={() => setSelectedManga(m)}>
-                          <div className="aspect-[2/3] bg-zinc-900 rounded-3xl mb-4 overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-indigo-500 group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
-                             <img src={m.coverUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 transition-opacity group-hover:opacity-100" />
-                          </div>
-                          <h3 className="text-white font-bold text-sm tracking-tight line-clamp-1 group-hover:text-indigo-400 transition-colors uppercase">{m.title}</h3>
-                        </div>
-                      ))
-                   ) : (
-                     <div className="col-span-full py-40 text-center opacity-40 italic">
-                        The world of stories awaits your call...
-                     </div>
-                   )}
+                    {searchResults.length > 0 ? (
+                       searchResults.map((m: Manga) => (
+                         <div key={m.id} className="group cursor-pointer" onClick={() => setSelectedManga(m)}>
+                           <div className="aspect-[2/3] bg-bg-card rounded-3xl mb-4 overflow-hidden border border-border-subtle transition-all duration-500 group-hover:border-primary group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
+                              <img src={m.coverUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-bg-main via-bg-main/10 to-transparent opacity-60 transition-opacity group-hover:opacity-100" />
+                           </div>
+                           <h3 className="text-text-main font-bold text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors uppercase">{m.title}</h3>
+                         </div>
+                       ))
+                    ) : (
+                      <div className="col-span-full py-40 text-center opacity-40 italic font-medium text-text-dim">
+                         The world of stories awaits your call...
+                      </div>
+                    )}
                 </div>
+              </motion.div>
+            )}
+            {activeTab === 'more' && (
+              <motion.div
+                key="more"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-12"
+              >
+                <section className="bg-bg-card p-8 rounded-[32px] border border-border-subtle shadow-xl">
+                  <h2 className="text-xl font-bold mb-8">Settings</h2>
+                  <div className="space-y-8">
+                    <div className="flex items-center justify-between group">
+                      <div>
+                        <p className="font-bold text-text-main group-hover:text-primary transition-colors">Theme Concept</p>
+                        <p className="text-sm text-text-muted">Choose your preferred visual aesthetic</p>
+                      </div>
+                      <div className="flex bg-bg-main p-1 rounded-2xl border border-border-subtle">
+                        <button 
+                          onClick={() => setTheme('dark')}
+                          className={cn(
+                            "px-6 py-2 rounded-xl text-xs font-bold transition-all",
+                            theme === 'dark' ? "bg-primary text-white shadow-lg" : "text-text-dim hover:text-text-main"
+                          )}
+                        >
+                          DARK
+                        </button>
+                        <button 
+                          onClick={() => setTheme('light')}
+                          className={cn(
+                            "px-6 py-2 rounded-xl text-xs font-bold transition-all",
+                            theme === 'light' ? "bg-primary text-white shadow-lg" : "text-text-dim hover:text-text-main"
+                          )}
+                        >
+                          LIGHT
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="pt-8 border-t border-border-subtle">
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-text-dim mb-4">Account</p>
+                      {user ? (
+                        <div className="flex items-center justify-between p-4 bg-bg-main rounded-2xl border border-border-subtle">
+                           <div className="flex items-center gap-4">
+                             <img src={user.photoURL || ''} className="w-12 h-12 rounded-full border border-border-subtle" />
+                             <div>
+                               <p className="font-bold text-text-main">{user.displayName}</p>
+                               <p className="text-xs text-text-dim">{user.email}</p>
+                             </div>
+                           </div>
+                           <Button onClick={logout} variant="danger" className="rounded-full px-6">Logout</Button>
+                        </div>
+                      ) : (
+                        <Button onClick={loginWithGoogle} className="w-full h-14 rounded-2xl">Connect Google Account</Button>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <section className="text-center opacity-30 italic text-sm">
+                  KomiKaze v1.0.4 • Crafted for Manga Enthusiasts
+                </section>
               </motion.div>
             )}
           </AnimatePresence>
@@ -538,7 +614,7 @@ export default function App() {
           <div className="lg:hidden absolute bottom-28 right-6 z-30">
             <div 
               onClick={() => setActiveTab('browse')}
-              className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 text-white cursor-pointer active:scale-90 transition-transform"
+              className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/40 text-white cursor-pointer active:scale-90 transition-transform"
             >
               <Plus className="w-8 h-8" />
             </div>
@@ -548,7 +624,7 @@ export default function App() {
 
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
-        <div className="bg-[#0a0a0b]/80 backdrop-blur-2xl border-t border-white/5 pb-safe px-6 pt-2">
+        <div className="bg-bg-main/80 backdrop-blur-2xl border-t border-border-subtle pb-safe px-6 pt-2">
           <div className="flex items-center justify-around h-16">
             {[
               { id: 'library', icon: Library, label: 'Library' },
@@ -561,7 +637,7 @@ export default function App() {
                 onClick={() => setActiveTab(item.id as any)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 w-full",
-                  activeTab === item.id ? "text-indigo-500" : "text-zinc-600"
+                  activeTab === item.id ? "text-primary" : "text-text-dim"
                 )}
               >
                 <item.icon className={cn("w-6 h-6 transition-transform", activeTab === item.id && "scale-110")} />
@@ -584,7 +660,7 @@ export default function App() {
           >
             <motion.div
               layoutId={`manga-${selectedManga.id}`}
-              className="bg-[#111114] w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] md:rounded-[40px] overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-white/5"
+              className="bg-bg-card w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] md:rounded-[40px] overflow-hidden flex flex-col md:flex-row relative shadow-2xl border border-border-subtle"
             >
               <button 
                 onClick={() => setSelectedManga(null)}
@@ -599,50 +675,50 @@ export default function App() {
                   className="w-full h-full object-cover" 
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#111114] hidden md:block" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#111114] via-transparent to-transparent md:hidden" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-bg-card hidden md:block" />
+                <div className="absolute inset-0 bg-gradient-to-t from-bg-card via-transparent to-transparent md:hidden" />
               </div>
 
               <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar flex flex-col">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 text-indigo-400 font-bold text-xs uppercase tracking-widest mb-4">
+                  <div className="flex items-center gap-3 text-primary font-bold text-xs uppercase tracking-widest mb-4">
                     <span>{selectedManga.status}</span>
-                    <span className="w-1 h-1 bg-zinc-700 rounded-full" />
+                    <span className="w-1 h-1 bg-border-subtle rounded-full" />
                     <span>{selectedManga.source}</span>
                   </div>
-                  <h2 className="text-4xl md:text-6xl font-black text-white leading-none tracking-tighter mb-4">{selectedManga.title}</h2>
-                  <p className="text-xl text-zinc-500 font-medium italic mb-8">{selectedManga.author}</p>
+                  <h2 className="text-4xl md:text-6xl font-black text-text-main leading-none tracking-tighter mb-4">{selectedManga.title}</h2>
+                  <p className="text-xl text-text-muted font-medium italic mb-8">{selectedManga.author}</p>
                   
                   <div className="flex flex-wrap gap-2 mb-8">
                     {selectedManga.genres.map(g => (
-                      <span key={g} className="px-4 py-1.5 bg-white/5 text-zinc-400 text-[10px] font-bold uppercase rounded-full border border-white/10">
+                      <span key={g} className="px-4 py-1.5 bg-bg-main text-text-muted text-[10px] font-bold uppercase rounded-full border border-border-subtle">
                         {g}
                       </span>
                     ))}
                   </div>
 
-                  <p className="text-zinc-400 text-lg leading-relaxed font-light mb-12">
+                  <p className="text-text-muted text-lg leading-relaxed font-light mb-12">
                     {selectedManga.description || "In a world of infinite stories, this one remains shrouded in mystery. Add it to your collection to begin the journey."}
                   </p>
 
                   <div className="mb-12">
-                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mb-6 flex items-center justify-between">
+                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-text-dim mb-6 flex items-center justify-between">
                        Chapters Available
-                       <span className="text-indigo-500/50">NEWEST FIRST</span>
+                       <span className="text-primary/50">NEWEST FIRST</span>
                      </h3>
                      <div className="space-y-3">
                        {[...Array(5)].map((_, i) => (
                          <div 
                           key={i} 
-                          className="p-5 bg-white/[0.02] hover:bg-white/[0.05] rounded-2xl flex items-center justify-between group cursor-pointer transition-all border border-white/[0.03]"
+                          className="p-5 bg-bg-main hover:bg-border-subtle rounded-2xl flex items-center justify-between group cursor-pointer transition-all border border-border-subtle"
                           onClick={() => startReading(selectedManga)}
                         >
                            <div className="flex flex-col">
-                             <span className="text-base font-bold text-zinc-300 group-hover:text-white transition-colors">Chapter {5 - i}</span>
-                             <span className="text-[10px] text-zinc-600 uppercase font-black mt-1">May 07, 2026 • FAN TRANSLATION</span>
+                             <span className="text-base font-bold text-text-muted group-hover:text-text-main transition-colors">Chapter {5 - i}</span>
+                             <span className="text-[10px] text-text-dim uppercase font-black mt-1">May 07, 2026 • FAN TRANSLATION</span>
                            </div>
-                           <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-indigo-600 transition-all">
-                             <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                           <div className="w-10 h-10 rounded-full bg-border-subtle flex items-center justify-center group-hover:bg-primary transition-all">
+                             <ChevronRight className="w-5 h-5 text-text-dim group-hover:text-white group-hover:translate-x-0.5 transition-all" />
                            </div>
                          </div>
                        ))}
@@ -650,10 +726,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto pt-8 border-t border-white/5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto pt-8 border-t border-border-subtle">
                   <Button 
                     onClick={() => startReading(selectedManga)} 
-                    className="h-16 rounded-2xl text-lg font-black bg-white text-black hover:bg-indigo-500 hover:text-white"
+                    className="h-16 rounded-2xl text-lg font-black bg-primary text-white hover:bg-primary/90"
                   >
                     CONTINUE READING
                   </Button>
@@ -669,7 +745,7 @@ export default function App() {
                     <Button 
                       variant="secondary" 
                       onClick={() => addToLibrary(selectedManga)}
-                      className="h-16 rounded-2xl font-bold border border-white/5 h-16"
+                      className="h-16 rounded-2xl font-bold border border-border-subtle"
                     >
                       ADD TO LIBRARY
                     </Button>

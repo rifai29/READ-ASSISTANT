@@ -3,14 +3,42 @@
 
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  
   --color-primary: #4f46e5;
-  --color-bg-main: #0a0a0b;
-  --color-bg-card: #111114;
+  
+  /* Use CSS variables for themes */
+  --color-bg-main: var(--bg-main);
+  --color-bg-card: var(--bg-card);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+}
+
+:root {
+  --bg-main: #0a0a0b;
+  --bg-card: #111114;
+  --bg-sidebar: #111114;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --text-main: #e4e4e7;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+}
+
+[data-theme='light'] {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-sidebar: #f1f5f9;
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #64748b;
 }
 
 @layer base {
   body {
-    @apply bg-bg-main text-zinc-200 overflow-x-hidden;
+    @apply bg-bg-main text-text-main transition-colors duration-300 overflow-x-hidden;
   }
 }
 
