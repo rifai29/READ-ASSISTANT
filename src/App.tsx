@@ -219,9 +219,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'library' | 'browse' | 'history' | 'more'>('library');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('theme') as 'light' | 'dark') || 'dark';
+      return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
     }
-    return 'dark';
+    return 'light';
   });
   const [selectedManga, setSelectedManga] = useState<Manga | null>(null);
   const [readingChapter, setReadingChapter] = useState<{ manga: Manga; chapter: Chapter } | null>(null);
