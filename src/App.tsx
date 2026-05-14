@@ -356,11 +356,11 @@ export default function App() {
     <div className="min-h-screen bg-bg-main text-text-main font-sans flex overflow-hidden">
       {/* Desktop Sidebar */}
       <nav className="w-64 bg-bg-sidebar border-r border-border-subtle flex-col p-6 hidden lg:flex h-screen sticky top-0">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <BookOpen className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-4 mb-12 group cursor-pointer" onClick={() => setActiveTab('library')}>
+          <div className="w-12 h-12 bg-primary rounded-[18px] flex items-center justify-center shadow-[0_8px_20px_rgba(79,70,229,0.3)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
+            <BookOpen className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-bold tracking-tight text-text-main italic">KomiKaze</span>
+          <span className="text-2xl tracking-tighter text-text-main logo-text">KomiKaze</span>
         </div>
         
         <div className="space-y-1 flex-1">
@@ -387,10 +387,12 @@ export default function App() {
 
       <main className="flex-1 flex flex-col relative h-screen overflow-y-auto custom-scrollbar">
         {/* Mobile Header / Desktop View Header */}
-        <header className="h-20 flex items-center justify-between px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle">
-          <div className="lg:hidden flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" />
-            <h1 className="text-lg font-bold italic">KomiKaze</h1>
+        <header className="h-24 flex items-center justify-between px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle">
+          <div className="lg:hidden flex items-center gap-3">
+             <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                <BookOpen className="w-5 h-5 text-white" strokeWidth={3} />
+             </div>
+            <h1 className="text-xl logo-text">KomiKaze</h1>
           </div>
           <h1 className="text-2xl font-bold text-text-main hidden lg:block">
             {activeTab === 'library' && 'My Library'}
