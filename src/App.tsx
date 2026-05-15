@@ -387,12 +387,12 @@ export default function App() {
 
       <main className="flex-1 flex flex-col relative h-screen overflow-y-auto custom-scrollbar">
         {/* Mobile Header / Desktop View Header */}
-        <header className="h-24 flex items-center justify-between px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle">
-          <div className="lg:hidden flex items-center gap-3">
-             <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <BookOpen className="w-5 h-5 text-white" strokeWidth={3} />
+        <header className="h-20 sm:h-24 flex items-center justify-between px-4 sm:px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle">
+          <div className="lg:hidden flex items-center gap-2 sm:gap-3">
+             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
              </div>
-            <h1 className="text-xl logo-text">KomiKaze</h1>
+            <h1 className="text-lg sm:text-xl logo-text">KomiKaze</h1>
           </div>
           <h1 className="text-2xl font-bold text-text-main hidden lg:block">
             {activeTab === 'library' && 'My Library'}
@@ -401,8 +401,8 @@ export default function App() {
             {activeTab === 'more' && 'Settings'}
           </h1>
 
-          <div className="flex items-center gap-4">
-            <div className="bg-bg-card px-4 py-2 rounded-full border border-border-subtle flex items-center gap-2 group focus-within:border-primary/50 transition-all">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden sm:flex bg-bg-card px-4 py-2 rounded-full border border-border-subtle items-center gap-2 group focus-within:border-primary/50 transition-all">
               <Search className="w-4 h-4 text-text-dim group-focus-within:text-primary" />
               <input 
                 type="text" 
@@ -415,7 +415,7 @@ export default function App() {
             </div>
             {!user && (
               <div className="lg:hidden">
-                <Button onClick={loginWithGoogle} className="rounded-full w-10 h-10 p-0">
+                <Button onClick={loginWithGoogle} className="rounded-full w-9 h-9 sm:w-10 sm:h-10 p-0 shadow-lg shadow-primary/20">
                   <Plus className="w-5 h-5" />
                 </Button>
               </div>
