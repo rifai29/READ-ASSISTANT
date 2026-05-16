@@ -353,9 +353,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-main text-text-main font-sans flex overflow-hidden">
+    <div className="h-[100dvh] bg-bg-main text-text-main font-sans flex overflow-hidden selection:bg-primary/20">
       {/* Desktop Sidebar */}
-      <nav className="w-64 bg-bg-sidebar border-r border-border-subtle flex-col p-6 hidden lg:flex h-screen sticky top-0">
+      <nav className="w-64 bg-bg-sidebar border-r border-border-subtle flex-col p-6 hidden lg:flex h-full">
         <div className="flex items-center gap-4 mb-12 group cursor-pointer" onClick={() => setActiveTab('library')}>
           <div className="w-12 h-12 bg-primary rounded-[18px] flex items-center justify-center shadow-[0_8px_20px_rgba(79,70,229,0.3)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
             <BookOpen className="w-6 h-6 text-white" strokeWidth={2.5} />
@@ -385,9 +385,9 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="flex-1 flex flex-col relative h-screen overflow-y-auto custom-scrollbar">
+      <main className="flex-1 flex flex-col relative h-full overflow-y-auto custom-scrollbar">
         {/* Mobile Header / Desktop View Header */}
-        <header className="h-20 sm:h-24 flex items-center justify-between px-4 sm:px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle">
+        <header className="h-16 sm:h-24 flex items-center justify-between px-4 sm:px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle shrink-0">
           <div className="lg:hidden flex items-center gap-2 sm:gap-3">
              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
@@ -413,11 +413,15 @@ export default function App() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            {!user && (
+            {!user ? (
               <div className="lg:hidden">
                 <Button onClick={loginWithGoogle} className="rounded-full w-9 h-9 sm:w-10 sm:h-10 p-0 shadow-lg shadow-primary/20">
                   <Plus className="w-5 h-5" />
                 </Button>
+              </div>
+            ) : (
+              <div className="lg:hidden flex items-center">
+                 <img src={user.photoURL || ''} className="w-9 h-9 rounded-full border border-border-subtle" />
               </div>
             )}
           </div>
@@ -437,36 +441,36 @@ export default function App() {
                 {libraryManga.length > 0 && (
                   <section>
                     <h2 className="text-xs uppercase tracking-[0.2em] text-text-dim font-bold mb-4 ml-1">Currently Reading</h2>
-                    <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row gap-8 items-center shadow-2xl shadow-primary/5 group">
+                    <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-[2rem] p-5 sm:p-8 flex flex-col sm:flex-row gap-6 sm:gap-8 items-center shadow-2xl shadow-primary/5 group">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
-                      <div className="w-40 sm:w-48 h-60 sm:h-72 bg-bg-card rounded-2xl shadow-2xl flex-shrink-0 overflow-hidden border border-border-subtle transform group-hover:scale-105 transition-transform duration-500 relative">
+                      <div className="w-32 sm:w-48 h-48 sm:h-72 bg-bg-card rounded-2xl shadow-2xl flex-shrink-0 overflow-hidden border border-white/10 transform sm:group-hover:scale-105 transition-transform duration-500 relative">
                         <img 
                           src={libraryManga[0].coverUrl} 
                           className="w-full h-full object-cover" 
                           referrerPolicy="no-referrer"
                         />
                       </div>
-                      <div className="flex-1 text-center sm:text-left z-10">
-                        <div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-sm">
+                      <div className="flex-1 text-center sm:text-left z-10 w-full">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-[10px] sm:text-sm">
                            <span className="px-2 py-0.5 bg-primary/10 rounded-md border border-primary/30">Chapter 1</span>
                            <span className="w-1 h-1 bg-border-subtle rounded-full" />
                            <span className="text-text-muted">Action, Fantasy</span>
                         </div>
-                        <h3 className="text-3xl sm:text-5xl font-black text-text-main mt-3 tracking-tight">{libraryManga[0].title}</h3>
-                        <p className="text-text-muted mt-4 line-clamp-3 max-w-xl font-light text-base sm:text-lg">
+                        <h3 className="text-2xl sm:text-5xl font-black text-text-main mt-3 tracking-tight line-clamp-1">{libraryManga[0].title}</h3>
+                        <p className="text-text-muted mt-3 sm:mt-4 line-clamp-2 sm:line-clamp-3 max-w-xl font-light text-sm sm:text-lg">
                           {libraryManga[0].description || "No description available for this series."}
                         </p>
-                        <div className="mt-8 flex flex-wrap gap-4 justify-center sm:justify-start">
+                        <div className="mt-6 sm:mt-8 flex flex-wrap gap-3 sm:gap-4 justify-center sm:justify-start">
                           <Button 
                             onClick={() => startReading(libraryManga[0])}
-                            className="bg-primary text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
+                            className="bg-primary text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full font-bold text-xs sm:text-sm hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
                           >
                             Continue Reading
                           </Button>
                           <Button 
                              onClick={() => setSelectedManga(libraryManga[0])}
                              variant="secondary" 
-                             className="rounded-full px-8"
+                             className="rounded-full px-6 sm:px-8 text-xs sm:text-sm"
                            >
                             View Details
                           </Button>
@@ -489,27 +493,27 @@ export default function App() {
                   </div>
 
                   {libraryManga.length === 0 ? (
-                    <div className="py-24 flex flex-col items-center justify-center text-center">
-                      <Library className="w-16 h-16 text-border-subtle mb-6" />
-                      <h3 className="text-xl font-bold text-text-dim">Silence in the library...</h3>
-                      <p className="text-text-dim mt-2 max-w-xs opacity-60">Explore the browse page to find your next adventure.</p>
+                    <div className="py-20 sm:py-24 flex flex-col items-center justify-center text-center">
+                      <Library className="w-12 h-12 sm:w-16 sm:h-16 text-border-subtle mb-6" />
+                      <h3 className="text-lg sm:text-xl font-bold text-text-dim">Silence in the library...</h3>
+                      <p className="text-xs sm:text-sm text-text-dim mt-2 max-w-xs opacity-60">Explore the browse page to find your next adventure.</p>
                       <Button onClick={() => setActiveTab('browse')} className="mt-8 px-10 rounded-full">Explore Now</Button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-8">
                        {libraryManga.map((m: Manga) => (
                         <div key={m.id} className="group cursor-pointer" onClick={() => setSelectedManga(m)}>
-                          <div className="aspect-[2/3] bg-bg-card rounded-3xl mb-4 overflow-hidden border border-border-subtle transition-all duration-500 group-hover:border-primary group-hover:translate-y-[-8px] group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
+                          <div className="aspect-[2/3] bg-bg-card rounded-[2rem] sm:rounded-3xl mb-3 sm:mb-4 overflow-hidden border border-border-subtle transition-all duration-500 group-hover:border-primary group-hover:translate-y-[-8px] relative">
                              <img 
                                 src={m.coverUrl} 
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                                 referrerPolicy="no-referrer"
                              />
                              <div className="absolute inset-0 bg-gradient-to-t from-bg-main via-bg-main/10 to-transparent opacity-60 transition-opacity group-hover:opacity-100" />
-                             <div className="absolute top-3 right-3 bg-primary text-[10px] font-black px-2 py-1 rounded-lg shadow-xl translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all text-white">READ</div>
+                             <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-primary text-[8px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg shadow-xl translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all text-white">READ</div>
                           </div>
-                          <h3 className="text-text-main font-bold text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors uppercase">{m.title}</h3>
-                          <p className="text-[10px] text-text-dim font-black mt-1 uppercase tracking-widest">{m.status}</p>
+                          <h3 className="text-text-main font-bold text-[13px] sm:text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors uppercase">{m.title}</h3>
+                          <p className="text-[9px] sm:text-[10px] text-text-dim font-black mt-1 uppercase tracking-widest">{m.status}</p>
                         </div>
                       ))}
                     </div>
@@ -524,21 +528,43 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-10"
+                className="space-y-6 sm:space-y-10"
               >
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 sm:gap-8 mt-12">
+                {/* Mobile Search Bar */}
+                <div className="sm:hidden relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-text-dim" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search series title..."
+                    className="block w-full pl-11 pr-4 py-3.5 bg-bg-card border border-border-subtle rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-medium"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  <Button 
+                    onClick={handleSearch}
+                    className="absolute right-1.5 inset-y-1.5 px-4 rounded-xl text-xs"
+                    disabled={isSearching}
+                  >
+                    {isSearching ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Go'}
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-8 mt-4 sm:mt-12">
                     {searchResults.length > 0 ? (
                        searchResults.map((m: Manga) => (
                          <div key={m.id} className="group cursor-pointer" onClick={() => setSelectedManga(m)}>
-                           <div className="aspect-[2/3] bg-bg-card rounded-3xl mb-4 overflow-hidden border border-border-subtle transition-all duration-500 group-hover:border-primary group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
+                           <div className="aspect-[2/3] bg-bg-card rounded-[2rem] sm:rounded-3xl mb-3 sm:mb-4 overflow-hidden border border-border-subtle transition-all duration-500 group-hover:border-primary group-hover:shadow-[0_20px_50px_rgba(79,70,229,0.15)] relative">
                               <img src={m.coverUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
                               <div className="absolute inset-0 bg-gradient-to-t from-bg-main via-bg-main/10 to-transparent opacity-60 transition-opacity group-hover:opacity-100" />
                            </div>
-                           <h3 className="text-text-main font-bold text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors uppercase">{m.title}</h3>
+                           <h3 className="text-text-main font-bold text-[13px] sm:text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors uppercase">{m.title}</h3>
                          </div>
                        ))
                     ) : (
-                      <div className="col-span-full py-40 text-center opacity-40 italic font-medium text-text-dim">
+                      <div className="col-span-full py-32 sm:py-40 text-center opacity-40 italic font-medium text-text-dim text-sm sm:text-base">
                          The world of stories awaits your call...
                       </div>
                     )}
