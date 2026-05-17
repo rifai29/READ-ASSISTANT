@@ -358,7 +358,7 @@ export default function App() {
       <nav className="w-64 bg-bg-sidebar border-r border-border-subtle flex-col p-6 hidden lg:flex h-full">
         <div className="flex items-center gap-4 mb-12 group cursor-pointer" onClick={() => setActiveTab('library')}>
           <div className="w-12 h-12 bg-primary rounded-[18px] flex items-center justify-center shadow-[0_8px_20px_rgba(79,70,229,0.3)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
-            <BookOpen className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <LayoutGrid className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-2xl tracking-tighter text-text-main logo-text">KomiKaze</span>
         </div>
@@ -390,7 +390,7 @@ export default function App() {
         <header className="h-16 sm:h-24 flex items-center justify-between px-4 sm:px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle shrink-0">
           <div className="lg:hidden flex items-center gap-2 sm:gap-3">
              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
+                <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
              </div>
             <h1 className="text-lg sm:text-xl logo-text">KomiKaze</h1>
           </div>
