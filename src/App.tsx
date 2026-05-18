@@ -15,7 +15,11 @@ import {
   Share2,
   Trash2,
   RotateCcw,
-  BookOpen
+  BookOpen,
+  MessageSquare,
+  Send,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, loginWithGoogle, logout, db } from './firebase';
@@ -214,9 +218,138 @@ const Reader = ({ manga, chapter, onBack }: { manga: Manga; chapter: Chapter; on
   );
 };
 
+// --- Assistant Chat Component ---
+
+const AssistantChat = () => {
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isLoading]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMsg = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setIsLoading(true);
+
+    try {
+      const resp = await fetch('/api/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg, history: messages })
+      });
+      
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Sumimasen! I'm having trouble connecting to the spirit realm right now. Please try again later." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-bg-card rounded-[2.5rem] border border-border-subtle overflow-hidden shadow-2xl">
+      <div className="p-6 border-b border-border-subtle flex items-center justify-between bg-bg-main/50">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <Bot className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bold text-text-main">Manga Spirit</h3>
+            <p className="text-[10px] text-primary font-black uppercase tracking-widest">Always Online</p>
+          </div>
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+            <Sparkles className="w-12 h-12 text-primary" />
+            <div>
+              <p className="font-bold text-lg">Your Personal Manga Sensei</p>
+              <p className="text-sm max-w-xs">Ask me for recommendations, plot explanations, or just discuss your favorite series!</p>
+            </div>
+          </div>
+        )}
+        
+        {messages.map((msg, idx) => (
+          <motion.div 
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "flex gap-4 max-w-[85%]",
+              msg.role === 'user' ? "ml-auto flex-row-reverse" : ""
+            )}
+          >
+            <div className={cn(
+              "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+              msg.role === 'user' ? "bg-bg-main border border-border-subtle" : "bg-primary"
+            )}>
+              {msg.role === 'user' ? <div className="text-[10px] font-black uppercase text-text-dim">ME</div> : <Bot className="w-4 h-4 text-white" />}
+            </div>
+            <div className={cn(
+              "p-4 rounded-[20px] text-sm leading-relaxed shadow-sm",
+              msg.role === 'user' 
+                ? "bg-primary text-white rounded-tr-none" 
+                : "bg-bg-main text-text-main border border-border-subtle rounded-tl-none"
+            )}>
+              {msg.content}
+            </div>
+          </motion.div>
+        ))}
+        {isLoading && (
+          <div className="flex gap-4 max-w-[85%]">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4 text-white" />
+            </div>
+            <div className="p-4 bg-bg-main rounded-[20px] rounded-tl-none border border-border-subtle flex gap-1 items-center h-10">
+              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 bg-bg-main/50 border-t border-border-subtle">
+        <div className="relative group">
+          <input 
+            type="text" 
+            placeholder="Ask anything about manga..." 
+            className="w-full bg-bg-card border border-border-subtle rounded-2xl py-4 pl-6 pr-14 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-medium"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          />
+          <button 
+            onClick={sendMessage}
+            disabled={!input.trim() || isLoading}
+            className="absolute right-2 top-2 bottom-2 px-4 rounded-xl bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-all active:scale-95"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'library' | 'browse' | 'history' | 'more'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'browse' | 'history' | 'assistant' | 'more'>('library');
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
@@ -366,6 +499,7 @@ export default function App() {
         <div className="space-y-1 flex-1">
           <NavItem id="library" icon={Library} label="Library" />
           <NavItem id="browse" icon={Search} label="Browse" />
+          <NavItem id="assistant" icon={Bot} label="Assistant" />
           <NavItem id="history" icon={Clock} label="History" />
           <NavItem id="more" icon={Settings} label="Settings" />
         </div>
@@ -397,6 +531,7 @@ export default function App() {
           <h1 className="text-2xl font-bold text-text-main hidden lg:block">
             {activeTab === 'library' && 'My Library'}
             {activeTab === 'browse' && 'Browse Manga'}
+            {activeTab === 'assistant' && 'Manga Assistant'}
             {activeTab === 'history' && 'Reading History'}
             {activeTab === 'more' && 'Settings'}
           </h1>
@@ -571,6 +706,18 @@ export default function App() {
                 </div>
               </motion.div>
             )}
+            {activeTab === 'assistant' && (
+              <motion.div
+                key="assistant"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="h-[calc(100vh-12rem)] max-w-4xl mx-auto flex flex-col"
+              >
+                <AssistantChat />
+              </motion.div>
+            )}
+
             {activeTab === 'more' && (
               <motion.div
                 key="more"
@@ -657,6 +804,7 @@ export default function App() {
             {[
               { id: 'library', icon: Library, label: 'Library' },
               { id: 'browse', icon: Search, label: 'Browse' },
+              { id: 'assistant', icon: Bot, label: 'Assistant' },
               { id: 'history', icon: Clock, label: 'History' },
               { id: 'more', icon: Settings, label: 'More' }
             ].map((item) => (

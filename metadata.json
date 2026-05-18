@@ -2,5 +2,5 @@
   "name": "Komi - Manga Reader",
   "description": "A sophisticated web-based manga and comic reader inspired by Tachiyomi, featuring a clean library, immersive reader modes, and cross-device sync.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
