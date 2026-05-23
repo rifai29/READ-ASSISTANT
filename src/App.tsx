@@ -798,9 +798,9 @@ export default function App() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
-        <div className="bg-bg-main/80 backdrop-blur-2xl border-t border-border-subtle pb-safe px-6 pt-2">
-          <div className="flex items-center justify-around h-16">
+      <nav className="fixed bottom-5 left-4 right-4 z-50 lg:hidden max-w-md mx-auto">
+        <div className="bg-bg-card/90 backdrop-blur-xl border border-border-subtle/80 rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.12)] px-3 py-1.5">
+          <div className="flex items-center justify-between gap-1">
             {[
               { id: 'library', icon: Library, label: 'Library' },
               { id: 'browse', icon: Search, label: 'Browse' },
@@ -812,12 +812,19 @@ export default function App() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 w-full",
-                  activeTab === item.id ? "text-primary" : "text-text-dim"
+                  "relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-300 w-full select-none outline-none",
+                  activeTab === item.id ? "text-primary font-bold" : "text-text-dim hover:text-text-main"
                 )}
               >
-                <item.icon className={cn("w-6 h-6 transition-transform", activeTab === item.id && "scale-110")} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+                {activeTab === item.id && (
+                  <motion.div
+                    layoutId="mobileActiveTab"
+                    className="absolute inset-0 bg-primary/10 rounded-xl -z-10"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <item.icon className={cn("w-5 h-5 transition-transform duration-300", activeTab === item.id && "scale-110")} />
+                <span className="text-[9px] font-bold tracking-tight mt-1 truncate">{item.label}</span>
               </button>
             ))}
           </div>
