@@ -34,7 +34,8 @@ import {
   updateDoc, 
   deleteDoc, 
   doc, 
-  serverTimestamp 
+  serverTimestamp,
+  getDocs
 } from 'firebase/firestore';
 import { cn } from './lib/utils';
 import { Manga, Chapter, LibraryItem, UserSettings } from './types';
@@ -363,6 +364,8 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [libraryManga, setLibraryManga] = useState<Manga[]>([]);
+  const [historyItems, setHistoryItems] = useState<{ id: string; mangaId: string; readAt: number; chapterNumber: number }[]>([]);
+  const [historyManga, setHistoryManga] = useState<Manga[]>([]);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -396,6 +399,30 @@ export default function App() {
         setLibraryManga(mangaData);
       } catch (error) {
         console.error("Failed to fetch library manga details:", error);
+      }
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setHistoryItems([]);
+      setHistoryManga([]);
+      return;
+    }
+
+    const histRef = collection(db, 'users', user.uid, 'history');
+    const q = query(histRef, orderBy('readAt', 'desc'));
+    
+    return onSnapshot(q, async (snap) => {
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      setHistoryItems(items);
+      
+      const mangaPromises = items.map(item => getMangaDetails(item.mangaId));
+      try {
+        const mangaData = await Promise.all(mangaPromises);
+        setHistoryManga(mangaData);
+      } catch (error) {
+        console.error("Failed to fetch history manga details:", error);
       }
     });
   }, [user]);
@@ -437,7 +464,26 @@ export default function App() {
     }
   };
 
-  const startReading = (manga: Manga) => {
+  const removeFromHistory = async (itemId: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'history', itemId));
+    } catch (err) {
+      console.error("Failed to remove history item:", err);
+    }
+  };
+
+  const clearAllHistory = async () => {
+    if (!user || historyItems.length === 0) return;
+    try {
+      const promises = historyItems.map(item => deleteDoc(doc(db, 'users', user.uid, 'history', item.id)));
+      await Promise.all(promises);
+    } catch (err) {
+      console.error("Failed to clear all history:", err);
+    }
+  };
+
+  const startReading = async (manga: Manga) => {
     const mockChapter: Chapter = {
       id: 'ch1',
       mangaId: manga.id,
@@ -451,6 +497,27 @@ export default function App() {
       releasedAt: new Date().toISOString()
     };
     setReadingChapter({ manga, chapter: mockChapter });
+
+    if (user) {
+      try {
+        const histRef = collection(db, 'users', user.uid, 'history');
+        const q = query(histRef, where('mangaId', '==', manga.id));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          await updateDoc(doc(db, 'users', user.uid, 'history', snap.docs[0].id), {
+            readAt: Date.now()
+          });
+        } else {
+          await addDoc(histRef, {
+            mangaId: manga.id,
+            readAt: Date.now(),
+            chapterNumber: 1
+          });
+        }
+      } catch (err) {
+        console.error("Failed to records history database:", err);
+      }
+    }
   };
 
   if (readingChapter) {
@@ -469,18 +536,18 @@ export default function App() {
       <button
         onClick={() => setActiveTab(id as any)}
         className={cn(
-          "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 group",
+          "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 group relative",
           active 
-            ? "bg-primary/10 text-primary" 
-            : "text-text-muted hover:bg-border-subtle hover:text-text-main"
+            ? "bg-primary/10 text-primary font-semibold shadow-sm" 
+            : "text-text-muted hover:bg-border-subtle/50 hover:text-text-main hover:translate-x-1"
         )}
       >
         <div className={cn(
-          "w-1.5 h-6 rounded-full transition-all duration-300",
-          active ? "bg-primary" : "bg-transparent group-hover:bg-border-subtle"
+          "w-1 h-5 rounded-full transition-all duration-300 absolute left-2",
+          active ? "bg-primary opacity-100" : "bg-transparent opacity-0 group-hover:bg-border-subtle group-hover:opacity-100"
         )} />
-        <Icon className={cn("w-5 h-5", active && "scale-110")} />
-        <span className="text-sm">{label}</span>
+        <Icon className={cn("w-5 h-5 ml-2 transition-transform duration-300 group-hover:scale-110", active ? "text-primary" : "text-text-muted group-hover:text-text-main")} />
+        <span className="text-sm transition-colors duration-300">{label}</span>
       </button>
     );
   };
@@ -506,7 +573,7 @@ export default function App() {
 
         <div className="mt-auto border-t border-white/5 pt-6">
           {user ? (
-            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5 border border-white/5">
               <img src={user.photoURL || ''} className="w-8 h-8 rounded-full border border-white/10" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold truncate text-white">{user.displayName}</p>
@@ -521,48 +588,50 @@ export default function App() {
 
       <main className="flex-1 flex flex-col relative h-full overflow-y-auto custom-scrollbar">
         {/* Mobile Header / Desktop View Header */}
-        <header className="h-16 sm:h-24 flex items-center justify-between px-4 sm:px-8 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle shrink-0">
-          <div className="lg:hidden flex items-center gap-2 sm:gap-3">
-             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
-             </div>
-            <h1 className="text-lg sm:text-xl logo-text">KomiKaze</h1>
-          </div>
-          <h1 className="text-2xl font-bold text-text-main hidden lg:block">
-            {activeTab === 'library' && 'My Library'}
-            {activeTab === 'browse' && 'Browse Manga'}
-            {activeTab === 'assistant' && 'Manga Assistant'}
-            {activeTab === 'history' && 'Reading History'}
-            {activeTab === 'more' && 'Settings'}
-          </h1>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="hidden sm:flex bg-bg-card px-4 py-2 rounded-full border border-border-subtle items-center gap-2 group focus-within:border-primary/50 transition-all">
-              <Search className="w-4 h-4 text-text-dim group-focus-within:text-primary" />
-              <input 
-                type="text" 
-                placeholder="Quick search..." 
-                className="bg-transparent border-none text-sm focus:ring-0 text-text-main w-24 sm:w-48 placeholder-text-dim outline-none"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
+        <header className="h-16 sm:h-24 bg-bg-main/80 backdrop-blur-md sticky top-0 z-40 border-b border-border-subtle shrink-0 flex items-center justify-center">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between">
+            <div className="lg:hidden flex items-center gap-2 sm:gap-3">
+               <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                  <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
+               </div>
+              <h1 className="text-lg sm:text-xl logo-text">KomiKaze</h1>
             </div>
-            {!user ? (
-              <div className="lg:hidden">
-                <Button onClick={loginWithGoogle} className="rounded-full w-9 h-9 sm:w-10 sm:h-10 p-0 shadow-lg shadow-primary/20">
-                  <Plus className="w-5 h-5" />
-                </Button>
+            <h1 className="text-2xl font-bold tracking-tight text-text-main hidden lg:block">
+              {activeTab === 'library' && 'My Library'}
+              {activeTab === 'browse' && 'Browse Manga'}
+              {activeTab === 'assistant' && 'Manga Assistant'}
+              {activeTab === 'history' && 'Reading History'}
+              {activeTab === 'more' && 'Settings'}
+            </h1>
+
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="hidden sm:flex bg-bg-card px-4 py-2 rounded-full border border-border-subtle items-center gap-2 group focus-within:border-primary focus-within:shadow-[0_0_20px_rgba(79,70,229,0.15)] transition-all duration-300">
+                <Search className="w-4 h-4 text-text-dim group-focus-within:text-primary transition-colors duration-300" />
+                <input 
+                  type="text" 
+                  placeholder="Quick search..." 
+                  className="bg-transparent border-none text-sm focus:ring-0 text-text-main w-24 sm:w-48 focus:w-64 placeholder-text-dim outline-none transition-all duration-300"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
               </div>
-            ) : (
-              <div className="lg:hidden flex items-center">
-                 <img src={user.photoURL || ''} className="w-9 h-9 rounded-full border border-border-subtle" />
-              </div>
-            )}
+              {!user ? (
+                <div className="lg:hidden">
+                  <Button onClick={loginWithGoogle} className="rounded-full w-9 h-9 sm:w-10 sm:h-10 p-0 shadow-lg shadow-primary/20">
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="lg:hidden flex items-center">
+                   <img src={user.photoURL || ''} className="w-9 h-9 rounded-full border border-border-subtle" />
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        <div className="p-4 sm:p-8 pb-32">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 pb-32 flex-1">
           <AnimatePresence mode="wait">
             {activeTab === 'library' && (
               <motion.div
@@ -715,6 +784,115 @@ export default function App() {
                 className="h-[calc(100vh-12rem)] max-w-4xl mx-auto flex flex-col"
               >
                 <AssistantChat />
+              </motion.div>
+            )}
+
+            {activeTab === 'history' && (
+              <motion.div
+                key="history"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs uppercase tracking-[0.2em] text-text-dim font-bold ml-1">
+                    Timeline ({historyItems.length})
+                  </h2>
+                  {historyItems.length > 0 && (
+                    <button 
+                      onClick={() => {
+                        if (confirm("Are you sure you want to clear your reading history?")) {
+                          clearAllHistory();
+                        }
+                      }}
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-text-dim hover:text-red-400 bg-bg-card hover:bg-red-500/10 border border-border-subtle hover:border-red-500/20 rounded-full transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Clear History
+                    </button>
+                  )}
+                </div>
+
+                {historyItems.length === 0 ? (
+                  <div className="py-20 sm:py-24 flex flex-col items-center justify-center text-center">
+                    <Clock className="w-12 h-12 sm:w-16 sm:h-16 text-border-subtle mb-6" />
+                    <h3 className="text-lg sm:text-xl font-bold text-text-dim">Your story timeline is empty...</h3>
+                    <p className="text-xs sm:text-sm text-text-dim mt-2 max-w-xs opacity-60">Any series you start reading will be safely cataloged here.</p>
+                    <Button onClick={() => setActiveTab('browse')} className="mt-8 px-10 rounded-full">Discover Stories</Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {historyItems.map((item) => {
+                      const manga = historyManga.find(m => m.id === item.mangaId);
+                      if (!manga) return null;
+                      return (
+                        <div 
+                          key={item.id} 
+                          className="group bg-bg-card border border-border-subtle rounded-3xl p-4 sm:p-5 flex items-center justify-between gap-4 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5"
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div 
+                              className="w-14 h-20 bg-bg-main rounded-xl overflow-hidden shadow-md flex-shrink-0 border border-border-subtle/50 cursor-pointer"
+                              onClick={() => setSelectedManga(manga)}
+                            >
+                              <img 
+                                src={manga.coverUrl} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 
+                                onClick={() => setSelectedManga(manga)} 
+                                className="font-bold text-text-main group-hover:text-primary transition-colors text-base truncate cursor-pointer uppercase tracking-tight"
+                              >
+                                {manga.title}
+                              </h4>
+                              <p className="text-[10px] text-text-dim uppercase font-black tracking-widest mt-0.5">{manga.author}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-[10px] text-primary/80 font-bold bg-primary/5 border border-primary/10 rounded-md px-2 py-0.5">Chapter {item.chapterNumber}</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-border-subtle" />
+                                <span className="text-[10px] text-text-dim uppercase font-bold tracking-wider">{manga.status}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="text-right hidden sm:block">
+                              <p className="text-xs text-text-muted font-semibold">
+                                {new Date(item.readAt).toLocaleDateString(undefined, { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </p>
+                              <p className="text-[10px] text-text-dim font-black uppercase tracking-wider mt-0.5">Last Read</p>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <button 
+                                onClick={() => startReading(manga)}
+                                className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-all shadow-md shadow-primary/10 active:scale-95"
+                                title="Resume Reading"
+                              >
+                                <Play className="w-4 h-4 fill-white translate-x-0.5" />
+                              </button>
+                              <button 
+                                onClick={() => removeFromHistory(item.id)}
+                                className="w-10 h-10 rounded-xl bg-bg-main border border-border-subtle text-text-dim hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 flex items-center justify-center transition-all md:opacity-0 group-hover:opacity-100 active:scale-95"
+                                title="Delete from timeline"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
 
